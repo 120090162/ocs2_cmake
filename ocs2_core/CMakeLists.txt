@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(ocs2_core)
 
-find_package(catkin REQUIRED COMPONENTS
-  cmake_modules
+find_package(
+  # catkin REQUIRED COMPONENTS
+  # cmake_modules
   ocs2_thirdparty
 )
 
