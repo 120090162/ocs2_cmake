@@ -88,6 +88,8 @@ target_link_libraries(${PROJECT_NAME}
 
 target_compile_options(${PROJECT_NAME} PUBLIC ${OCS2_CXX_FLAGS})
 
+target_include_directories(${PROJECT_NAME} PUBLIC include)
+
 add_executable(${PROJECT_NAME}_lintTarget
   src/lintTarget.cpp
 )
