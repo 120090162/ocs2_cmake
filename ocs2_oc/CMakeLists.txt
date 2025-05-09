@@ -88,7 +88,10 @@ target_link_libraries(${PROJECT_NAME}
 
 target_compile_options(${PROJECT_NAME} PUBLIC ${OCS2_CXX_FLAGS})
 
-target_include_directories(${PROJECT_NAME} PUBLIC include)
+target_include_directories(${PROJECT_NAME} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
 
 add_executable(${PROJECT_NAME}_lintTarget
   src/lintTarget.cpp
@@ -97,6 +100,19 @@ add_executable(${PROJECT_NAME}_lintTarget
 target_link_libraries(${PROJECT_NAME}_lintTarget
   PRIVATE ocs2_core
 )
+
+install(TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}Targets
+  DESTINATION lib
+)
+install(DIRECTORY include/ DESTINATION include)
+
+install(EXPORT ${PROJECT_NAME}Targets
+  FILE ${PROJECT_NAME}Targets.cmake
+  NAMESPACE ocs2::
+  DESTINATION lib/cmake/${PROJECT_NAME})
+
+
 
 #########################
 ###   CLANG TOOLING   ###
