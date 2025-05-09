@@ -19,6 +19,8 @@ set(OCS2_MODULES
   ocs2_sqp/blasfeo_cmake
   ocs2_sqp/hpipm_cmake
   ocs2_sqp/ocs2_sqp  # 可按需解注
+  ocs2_pinocchio/ocs2_pinocchio_interface
+  ocs2_pinocchio/ocs2_centroidal_model
 )
 
 # 自动添加所有模块
