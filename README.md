@@ -1,3 +1,7 @@
 # ocs2_cmake
 
 This project is based on [ocs2](https://github.com/leggedrobotics/ocs2). osc2 is an excellent optimal control package, including setting up optimal control problems, converting them into nonlinear optimization problems, and the necessary MPC/MRT interface for robotics, especially legged robots, which are classified as switched system. However, the original project uses `catkin` as the build system, uses ROS as communication middle-ware and parameter server, uses ROS package management system, which makes it closely coupled with ROS, while ROS, specifically, ROS1, is depend on Ubuntu up to 20.04 (Focal Fossa), i.e. ROS noetic. However, let alone ROS noetic and Focal Fossa are both near their end-of-life, the strong coupling is not friendly for deploy algorithms on other platform (i.e. cpu artechture, say x86, arm, risc-v) or operating system (boarder unix-like OS). Thanks to the opensource from the original ocs2, this work is made possible to change the build system to cmake, and leave the communication middle-ware interface flexible for users to select or implement.
+
+# test
+
+To demonstrate the mpc capability, we demonstrate a quadruped robot with centroid dynamics model by solving a trajectory optimization problem.
