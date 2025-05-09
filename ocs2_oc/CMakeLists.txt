@@ -3,10 +3,7 @@ project(ocs2_oc)
 
 ## Find catkin macros and libraries
 find_package(
-  #catkin REQUIRED COMPONENTS
-  # cmake_modules
-  ocs2_core
-  # ocs2_qp_solver
+  ocs2_core REQUIRED
 )
 find_package(Boost REQUIRED COMPONENTS
   system
@@ -16,7 +13,7 @@ find_package(Boost REQUIRED COMPONENTS
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 # Generate compile_commands.json for clang tools
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ###################################
 ## catkin specific configuration ##
@@ -40,6 +37,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 ###########
 
 include_directories(
+  ${CMAKE_INSTALL_PREFIX}/include
   include
   test/include
   ${EIGEN3_INCLUDE_DIRS}
@@ -82,7 +80,7 @@ add_library(${PROJECT_NAME}
   src/trajectory_adjustment/TrajectorySpreading.cpp
 )
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE ocs2_core
+  PRIVATE ocs2::ocs2_core
   # ${catkin_LIBRARIES}
 )
 
@@ -98,8 +96,29 @@ add_executable(${PROJECT_NAME}_lintTarget
 )
 
 target_link_libraries(${PROJECT_NAME}_lintTarget
-  PRIVATE ocs2_core
+  PRIVATE ocs2::ocs2_core
 )
+
+
+
+
+#########################
+###   CLANG TOOLING   ###
+#########################
+# find_package(cmake_clang_tools QUIET)
+# if(cmake_clang_tools_FOUND)
+#   message(STATUS "Run clang tooling for target " ${PROJECT_NAME}_lintTarget)
+#   add_clang_tooling(
+#     TARGETS ${PROJECT_NAME}_lintTarget
+#     SOURCE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/test/include
+#     CT_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
+#     CF_WERROR
+# )
+# endif(cmake_clang_tools_FOUND)
+
+#############
+## Install ##
+#############
 
 install(TARGETS ${PROJECT_NAME}
   EXPORT ${PROJECT_NAME}Targets
@@ -111,26 +130,6 @@ install(EXPORT ${PROJECT_NAME}Targets
   FILE ${PROJECT_NAME}Targets.cmake
   NAMESPACE ocs2::
   DESTINATION lib/cmake/${PROJECT_NAME})
-
-
-
-#########################
-###   CLANG TOOLING   ###
-#########################
-find_package(cmake_clang_tools QUIET)
-if(cmake_clang_tools_FOUND)
-  message(STATUS "Run clang tooling for target " ${PROJECT_NAME}_lintTarget)
-  add_clang_tooling(
-    TARGETS ${PROJECT_NAME}_lintTarget
-    SOURCE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/test/include
-    CT_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
-    CF_WERROR
-)
-endif(cmake_clang_tools_FOUND)
-
-#############
-## Install ##
-#############
 
 # install(
 #   TARGETS ${PROJECT_NAME}
