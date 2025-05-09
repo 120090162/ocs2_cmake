@@ -1,120 +1,47 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.14)
 project(ocs2_mpc)
 
-find_package(
-  # catkin REQUIRED COMPONENTS
-  # cmake_modules
-  ocs2_core
-  # ocs2_oc
-)
-
-find_package(
-  ocs2_oc
-)
-
-find_package(Boost REQUIRED COMPONENTS
-  system
-  filesystem
-)
-
+# 系统依赖
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Boost REQUIRED COMPONENTS system filesystem)
+find_package(Threads REQUIRED)
 
-# Generate compile_commands.json for clang tools
+# 编译选项
+include(cmake/ocs2_cxx_flags.cmake OPTIONAL)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-###################################
-## catkin specific configuration ##
-###################################
+# 自动添加所有源文件
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.cpp)
 
-# catkin_package(
-#   INCLUDE_DIRS
-#     include
-#     ${EIGEN3_INCLUDE_DIRS}
-#   LIBRARIES
-#     ${PROJECT_NAME}
-#   CATKIN_DEPENDS
-#     ocs2_core
-#     ocs2_oc
-#   DEPENDS
-#     Boost
-# )
+# 添加库
+add_library(${PROJECT_NAME} ${SRC_FILES})
 
-###########
-## Build ##
-###########
-
-include_directories(
-  include
-  ${EIGEN3_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-  # ${catkin_INCLUDE_DIRS}
-)
-
-add_library(${PROJECT_NAME}
-  src/LoopshapingSystemObservation.cpp
-  src/MPC_BASE.cpp
-  src/MPC_Settings.cpp
-  src/SystemObservation.cpp
-  src/MRT_BASE.cpp
-  src/MPC_MRT_Interface.cpp
-  # src/MPC_OCS2.cpp
-)
 target_link_libraries(${PROJECT_NAME}
-  # ${catkin_LIBRARIES}
-  PRIVATE ocs2_core
-  PRIVATE ocs2_oc
+  PUBLIC ocs2_core
+  PUBLIC ocs2_oc
+  PUBLIC Eigen3::Eigen
+  PUBLIC Threads::Threads
+  PUBLIC ${Boost_LIBRARIES}
 )
+
 target_compile_options(${PROJECT_NAME} PUBLIC ${OCS2_CXX_FLAGS})
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 
+# lintTarget 可选构建工具
+add_executable(${PROJECT_NAME}_lintTarget src/lintTarget.cpp)
+target_link_libraries(${PROJECT_NAME}_lintTarget PRIVATE ${PROJECT_NAME})
 
-add_executable(${PROJECT_NAME}_lintTarget
-  src/lintTarget.cpp
-)
-target_link_libraries(${PROJECT_NAME}_lintTarget
-  # ${catkin_LIBRARIES}
-  PRIVATE ocs2_core
-  PRIVATE ocs2_oc
-)
-
-#########################
-###   CLANG TOOLING   ###
-#########################
+# Clang tooling（可选）
 find_package(cmake_clang_tools QUIET)
 if(cmake_clang_tools_FOUND)
-  message(STATUS "Run clang tooling for target " ${PROJECT_NAME}_lintTarget)
   add_clang_tooling(
     TARGETS ${PROJECT_NAME}_lintTarget
     SOURCE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/include
     CT_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
     CF_WERROR
-)
-endif(cmake_clang_tools_FOUND)
+  )
+endif()
 
-#############
-## Install ##
-#############
-
-# install(
-#   TARGETS ${PROJECT_NAME}
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
-# install(DIRECTORY include/${PROJECT_NAME}/
-#         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
-
-#############
-## Testing ##
-#############
-
-#catkin_add_gtest(testMPC_OCS2
-#  test/testMPC_OCS2.cpp
-#)
-#target_link_libraries(testMPC_OCS2
-#  ${catkin_LIBRARIES}
-#  ${Boost_LIBRARIES}
-#)
-#target_compile_options(testMPC_OCS2 PRIVATE ${OCS2_CXX_FLAGS})
-
+# 安装（可选）
+# install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+# install(DIRECTORY include/ DESTINATION include)

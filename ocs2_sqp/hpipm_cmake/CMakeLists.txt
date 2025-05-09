@@ -6,8 +6,7 @@ include(FetchContent)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(Threads REQUIRED)
 find_package(OpenMP REQUIRED)
-find_package(ocs2_core REQUIRED)
-find_package(ocs2_oc REQUIRED)
+ 
 
 # Required manually-set path to use the previously built blasfeo
 set(BLASFEO_PATH ${CMAKE_CURRENT_BINARY_DIR}/blasfeo-install)
@@ -50,21 +49,21 @@ target_include_directories(hpipm_interface PUBLIC
 target_link_libraries(hpipm_interface
   PRIVATE hpipm blasfeo Eigen3::Eigen Threads::Threads OpenMP::OpenMP_CXX ocs2_core ocs2_oc)
 
-install(TARGETS hpipm_interface DESTINATION lib)
+# install(TARGETS hpipm_interface DESTINATION lib)
 
-# Install and export the interface target
-install(TARGETS hpipm_interface
-  EXPORT hpipmTargets
-  DESTINATION lib
-)
+# # Install and export the interface target
+# install(TARGETS hpipm_interface
+#   EXPORT hpipmTargets
+#   DESTINATION lib
+# )
 
-install(DIRECTORY include/ DESTINATION include)
+# install(DIRECTORY include/ DESTINATION include)
 
-# Export CMake config (makes find_package(hpipm) work)
-install(EXPORT hpipmTargets
-  FILE hpipmTargets.cmake
-  NAMESPACE hpipm::
-  DESTINATION lib/cmake/hpipm)
+# # Export CMake config (makes find_package(hpipm) work)
+# install(EXPORT hpipmTargets
+#   FILE hpipmTargets.cmake
+#   NAMESPACE hpipm::
+#   DESTINATION lib/cmake/hpipm)
 
 # Optional: gtest test (replace with CMake version)
 # add_executable(test_hpipm test/testHpipmInterface.cpp)

@@ -1,122 +1,56 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.14)
 project(ocs2_sqp)
 
-find_package(ocs2_core)
-find_package(ocs2_mpc)
-find_package(ocs2_oc)
-find_package(ocs2_qp_solver)
-find_package(blasfeo)
-find_package(hpipm)
-
-# set(CATKIN_PACKAGE_DEPENDENCIES
-#   ocs2_core
-#   ocs2_mpc
-#   ocs2_oc
-#   ocs2_qp_solver
-#   blasfeo_catkin
-#   hpipm_catkin
-# )
-
-# find_package(catkin REQUIRED COMPONENTS
-#   ${CATKIN_PACKAGE_DEPENDENCIES}
-# )
-
-find_package(Boost REQUIRED COMPONENTS
-  system
-  filesystem
-)
-
+# 系统依赖
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Boost REQUIRED COMPONENTS system filesystem)
+find_package(Threads REQUIRED)
 
-###################################
-## catkin specific configuration ##
-###################################
+# 编译选项（可选）
+include(cmake/ocs2_cxx_flags.cmake OPTIONAL)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# catkin_package(
-#   INCLUDE_DIRS
-#     include
-#     ${EIGEN3_INCLUDE_DIRS}
-#   CATKIN_DEPENDS
-#     ${CATKIN_PACKAGE_DEPENDENCIES}
-#   LIBRARIES
-#     ${PROJECT_NAME}
-#   DEPENDS
-#     Boost
-# )
+# 自动收集源文件
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.cpp)
 
-###########
-## Build ##
-###########
-
-include_directories(
-  include
-  # ${catkin_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-)
-
-# Multiple shooting solver library
-add_library(${PROJECT_NAME}
-  src/SqpSettings.cpp
-  src/SqpSolver.cpp
-)
-# add_dependencies(${PROJECT_NAME}
-#   ${catkin_EXPORTED_TARGETS}
-# )
+# 创建库
+add_library(${PROJECT_NAME} ${SRC_FILES})
 target_link_libraries(${PROJECT_NAME}
-  # ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ocs2_core
-  ocs2_mpc
-  ocs2_oc
-  ocs2_qp_solver
-  blasfeo
-  hpipm
+  PUBLIC ocs2_core
+  PUBLIC ocs2_oc
+  PUBLIC ocs2_mpc
+  PUBLIC ocs2_qp_solver
+  PUBLIC blasfeo
+  PUBLIC hpipm
+  PUBLIC hpipm_interface
+  PUBLIC Eigen3::Eigen
+  PUBLIC Boost::system
+  PUBLIC Boost::filesystem
+  PUBLIC Threads::Threads
 )
 target_compile_options(${PROJECT_NAME} PUBLIC ${OCS2_CXX_FLAGS})
+target_include_directories(${PROJECT_NAME} PUBLIC
+  include
+)
 
-#########################
-###   CLANG TOOLING   ###
-#########################
+# Clang Tooling（可选）
 find_package(cmake_clang_tools QUIET)
 if(cmake_clang_tools_FOUND)
-  message(STATUS "Run clang tooling for target " ${PROJECT_NAME})
   add_clang_tooling(
     TARGETS ${PROJECT_NAME}
-    SOURCE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/test
+    SOURCE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/include
     CT_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
     CF_WERROR
   )
-endif(cmake_clang_tools_FOUND)
+endif()
 
-#############
-## Install ##
-#############
-# install(
-#   TARGETS ${PROJECT_NAME}
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# 测试
+# enable_testing()
+# file(GLOB TEST_SRC_FILES CONFIGURE_DEPENDS test/*.cpp)
+# add_executable(${PROJECT_NAME}_test ${TEST_SRC_FILES})
+# target_link_libraries(${PROJECT_NAME}_test
+#   PRIVATE ${PROJECT_NAME}
+#   PRIVATE gtest_main
 # )
-
-# install(DIRECTORY include/${PROJECT_NAME}/
-#         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
-
-#############
-## Testing ##
-#############
-
-# catkin_add_gtest(test_${PROJECT_NAME}
-#   test/testCircularKinematics.cpp
-#   test/testSwitchedProblem.cpp
-#   test/testUnconstrained.cpp
-#   test/testValuefunction.cpp
-# )
-# add_dependencies(test_${PROJECT_NAME}
-#   ${catkin_EXPORTED_TARGETS}
-# )
-# target_link_libraries(test_${PROJECT_NAME}
-#   ${PROJECT_NAME}
-#   ${catkin_LIBRARIES}
-#   gtest_main
-# )
+# target_compile_options(${PROJECT_NAME}_test PRIVATE ${OCS2_CXX_FLAGS})
+# add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_test)

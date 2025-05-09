@@ -1,118 +1,57 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.14)
 project(ocs2_robotic_tools)
 
-# Generate compile_commands.json for clang tools
+# 系统依赖
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+# find_package(GTest REQUIRED)
+find_package(Threads REQUIRED)
+
+# 编译选项
+include(cmake/ocs2_cxx_flags.cmake OPTIONAL)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(
-  # catkin REQUIRED COMPONENTS
-  ocs2_core
-  # ocs2_oc
-)
+# 自动添加源文件
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.cpp)
 
-find_package(
-  ocs2_oc
-)
-
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
-
-###################################
-## catkin specific configuration ##
-###################################
-
-# catkin_package(
-#   INCLUDE_DIRS
-#     include
-#     ${EIGEN3_INCLUDE_DIRS}
-#   LIBRARIES
-#     ${PROJECT_NAME}
-#   CATKIN_DEPENDS
-#     ocs2_core
-#     ocs2_oc
-#   DEPENDS
-# )
-
-
-###########
-## Build ##
-###########
-
-include_directories(
-  include
-  ${EIGEN3_INCLUDE_DIRS}
-  # ${catkin_INCLUDE_DIRS}
-)
-
-add_library(${PROJECT_NAME}
-  src/common/RotationTransforms.cpp
-  src/common/LoopshapingRobotInterface.cpp
-)
+# 主库
+add_library(${PROJECT_NAME} ${SRC_FILES})
 target_link_libraries(${PROJECT_NAME}
-  # ${catkin_LIBRARIES}
-  PRIVATE ocs2_core
-  PRIVATE ocs2_oc
-  PRIVATE ocs2_thirdparty
+  PUBLIC ocs2_core
+  PUBLIC ocs2_oc
+  PUBLIC Eigen3::Eigen
+  PUBLIC Threads::Threads
 )
 target_compile_options(${PROJECT_NAME} PUBLIC ${OCS2_CXX_FLAGS})
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 
-add_executable(${PROJECT_NAME}_lintTarget
-  src/lintTarget.cpp
-)
-target_link_libraries(${PROJECT_NAME}_lintTarget
-  # ${catkin_LIBRARIES}
-  PRIVATE ocs2_core
-  PRIVATE ocs2_oc
-  PRIVATE ocs2_thirdparty
-)
+# lintTarget（可选）
+add_executable(${PROJECT_NAME}_lintTarget src/lintTarget.cpp)
+target_link_libraries(${PROJECT_NAME}_lintTarget PRIVATE ${PROJECT_NAME})
 
-#########################
-###   CLANG TOOLING   ###
-#########################
+# Clang 工具（可选）
 find_package(cmake_clang_tools QUIET)
 if(cmake_clang_tools_FOUND)
-  message(STATUS "Run clang tooling for target " ${PROJECT_NAME}_lintTarget)
   add_clang_tooling(
     TARGETS ${PROJECT_NAME}_lintTarget
     SOURCE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/include
     CT_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
     CF_WERROR
   )
-endif(cmake_clang_tools_FOUND)
+endif()
 
-#############
-## Install ##
-#############
-
-# install(
-#   TARGETS ${PROJECT_NAME}
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
-# install(DIRECTORY
-#             include/${PROJECT_NAME}/
-#         DESTINATION
-#             ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
-
-#############
-## Testing ##
-#############
-## Info ==============================
-## to run tests, cd package folder and run
-## $ catkin build -DCMAKE_BUILD_TYPE=RelWithDebInfo --this
-## $ catkin run_tests --no-deps --this
-## to see the summary of unit test results run
-## $ catkin_test_results ../../../build/ocs2_robotic_tools
-
-# catkin_add_gtest(rotation_transform_tests
+# 测试
+# enable_testing()
+# add_executable(rotation_transform_tests
 #   test/common/TestRotationTransforms.cpp
 #   test/common/TestRotationDerivativesTransforms.cpp
 # )
 # target_link_libraries(rotation_transform_tests
-#   ${PROJECT_NAME}
-#   ${catkin_LIBRARIES}
-#   gtest_main
+#   PRIVATE ${PROJECT_NAME}
+#   PRIVATE GTest::gtest_main
 # )
 # target_compile_options(rotation_transform_tests PRIVATE ${OCS2_CXX_FLAGS})
+# add_test(NAME rotation_transform_tests COMMAND rotation_transform_tests)
+
+# 安装（可选）
+# install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+# install(DIRECTORY include/ DESTINATION include)

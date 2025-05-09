@@ -1,237 +1,94 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.14)
 project(ocs2_oc)
 
-## Find catkin macros and libraries
-find_package(
-  #catkin REQUIRED COMPONENTS
-  # cmake_modules
-  ocs2_core
-  # ocs2_qp_solver
-)
-find_package(Boost REQUIRED COMPONENTS
-  system
-  filesystem
-)
-
+# 外部依赖
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Boost REQUIRED COMPONENTS system filesystem)
+# find_package(GTest REQUIRED)
+find_package(Threads REQUIRED)
 
-# Generate compile_commands.json for clang tools
+# 编译选项（可选）
+include(cmake/ocs2_cxx_flags.cmake OPTIONAL)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-###################################
-## catkin specific configuration ##
-###################################
-
-# catkin_package(
-#   INCLUDE_DIRS
-#     include
-#     test/include
-#     ${EIGEN3_INCLUDE_DIRS}
-#   LIBRARIES
-#     ${PROJECT_NAME}
-#   CATKIN_DEPENDS
-#     ocs2_core
-#   DEPENDS
-#     Boost
-# )
-
-###########
-## Build ##
-###########
-
+# 头文件路径
 include_directories(
   include
   test/include
   ${EIGEN3_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
-  # ${catkin_INCLUDE_DIRS}
 )
 
-add_library(${PROJECT_NAME}
-  src/approximate_model/ChangeOfInputVariables.cpp
-  src/approximate_model/LinearQuadraticApproximator.cpp
-  src/multiple_shooting/Helpers.cpp
-  src/multiple_shooting/Initialization.cpp
-  src/multiple_shooting/LagrangianEvaluation.cpp
-  src/multiple_shooting/MetricsComputation.cpp
-  src/multiple_shooting/PerformanceIndexComputation.cpp
-  src/multiple_shooting/ProjectionMultiplierCoefficients.cpp
-  src/multiple_shooting/Transcription.cpp
-  src/oc_data/LoopshapingPrimalSolution.cpp
-  src/oc_data/PerformanceIndex.cpp
-  src/oc_data/TimeDiscretization.cpp
-  src/oc_problem/OptimalControlProblem.cpp
-  src/oc_problem/LoopshapingOptimalControlProblem.cpp
-  src/oc_problem/OptimalControlProblemHelperFunction.cpp
-  src/oc_problem/OcpSize.cpp
-  src/oc_problem/OcpToKkt.cpp
-  src/oc_solver/SolverBase.cpp
-  src/precondition/Ruzi.cpp
-  src/rollout/PerformanceIndicesRollout.cpp
-  src/rollout/RolloutBase.cpp
-  src/rollout/RootFinder.cpp
-  src/rollout/InitializerRollout.cpp
-  src/rollout/StateTriggeredRollout.cpp
-  src/rollout/TimeTriggeredRollout.cpp
-  src/rollout/RolloutSettings.cpp
-  src/synchronized_module/ReferenceManager.cpp
-  src/synchronized_module/LoopshapingReferenceManager.cpp
-  src/synchronized_module/LoopshapingSynchronizedModule.cpp
-  src/synchronized_module/SolverObserver.cpp
-  src/search_strategy/FilterLinesearch.cpp
-  src/trajectory_adjustment/TrajectorySpreading.cpp
-)
+# 添加源文件
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.cpp)
+
+# 主库
+add_library(${PROJECT_NAME} ${SRC_FILES})
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE ocs2_core
-  # ${catkin_LIBRARIES}
+  PUBLIC ocs2_core
+  PUBLIC Threads::Threads
+  PUBLIC Eigen3::Eigen
+  PUBLIC ${Boost_LIBRARIES}
 )
-
 target_compile_options(${PROJECT_NAME} PUBLIC ${OCS2_CXX_FLAGS})
-
-target_include_directories(${PROJECT_NAME} PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-
-add_executable(${PROJECT_NAME}_lintTarget
-  src/lintTarget.cpp
-)
-
-target_link_libraries(${PROJECT_NAME}_lintTarget
-  PRIVATE ocs2_core
-)
-
-install(TARGETS ${PROJECT_NAME}
-  EXPORT ${PROJECT_NAME}Targets
-  DESTINATION lib
-)
-install(DIRECTORY include/ DESTINATION include)
-
-install(EXPORT ${PROJECT_NAME}Targets
-  FILE ${PROJECT_NAME}Targets.cmake
-  NAMESPACE ocs2::
-  DESTINATION lib/cmake/${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME} PUBLIC include)
 
 
+# lintTarget
+add_executable(${PROJECT_NAME}_lintTarget src/lintTarget.cpp)
+target_link_libraries(${PROJECT_NAME}_lintTarget PRIVATE ${PROJECT_NAME})
 
-#########################
-###   CLANG TOOLING   ###
-#########################
-find_package(cmake_clang_tools QUIET)
-if(cmake_clang_tools_FOUND)
-  message(STATUS "Run clang tooling for target " ${PROJECT_NAME}_lintTarget)
-  add_clang_tooling(
-    TARGETS ${PROJECT_NAME}_lintTarget
-    SOURCE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/test/include
-    CT_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
-    CF_WERROR
-)
-endif(cmake_clang_tools_FOUND)
+# # Clang tooling（可选）
+# find_package(cmake_clang_tools QUIET)
+# if(cmake_clang_tools_FOUND)
+#   add_clang_tooling(
+#     TARGETS ${PROJECT_NAME}_lintTarget
+#     SOURCE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/test/include
+#     CT_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
+#     CF_WERROR
+#   )
+# endif()
 
-#############
-## Install ##
-#############
+# 单元测试
+# enable_testing()
 
-# install(
-#   TARGETS ${PROJECT_NAME}
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-# )
-# install(DIRECTORY test/include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-# )
+# macro(add_ocs2_test name)
+#   add_executable(${name} ${ARGN})
+#   target_link_libraries(${name} PRIVATE ${PROJECT_NAME} GTest::gtest_main)
+#   add_test(NAME ${name} COMMAND ${name})
+# endmacro()
 
-#############
-## Testing ##
-#############
-## Info ==============================
-## to run tests, cd package folder and run
-## $ catkin build -DCMAKE_BUILD_TYPE=RelWithDebInfo --this
-## $ catkin run_tests --no-deps --this
-## to see the summary of unit test results run
-## $ catkin_test_results ../../../build/ocs2_oc
-
-# catkin_add_gtest(test_${PROJECT_NAME}_multiple_shooting
+# add_ocs2_test(test_multiple_shooting
 #   test/multiple_shooting/testProjectionMultiplierCoefficients.cpp
 #   test/multiple_shooting/testTranscriptionMetrics.cpp
 #   test/multiple_shooting/testTranscriptionPerformanceIndex.cpp
 # )
-# add_dependencies(test_${PROJECT_NAME}_multiple_shooting
-#   ${catkin_EXPORTED_TARGETS}
-# )
-# target_link_libraries(test_${PROJECT_NAME}_multiple_shooting
-#   ${PROJECT_NAME}
-#   ${catkin_LIBRARIES}
-#   gtest_main
-# )
 
-# catkin_add_gtest(test_${PROJECT_NAME}_data
+# add_ocs2_test(test_oc_data
 #   test/oc_data/testTimeDiscretization.cpp
 # )
-# add_dependencies(test_${PROJECT_NAME}_data
-#   ${catkin_EXPORTED_TARGETS}
-# )
-# target_link_libraries(test_${PROJECT_NAME}_data
-#   ${PROJECT_NAME}
-#   ${catkin_LIBRARIES}
-#   gtest_main
+
+# add_ocs2_test(test_rollout
+#   test/rollout/testTimeTriggeredRollout.cpp
+#   test/rollout/testStateTriggeredRollout.cpp
 # )
 
-# catkin_add_gtest(test_${PROJECT_NAME}_rollout
-#    test/rollout/testTimeTriggeredRollout.cpp
-#    test/rollout/testStateTriggeredRollout.cpp
-# )
-# add_dependencies(test_${PROJECT_NAME}_rollout
-#   ${catkin_EXPORTED_TARGETS}
-# )
-# target_link_libraries(test_${PROJECT_NAME}_rollout
-#   ${PROJECT_NAME}
-#   ${catkin_LIBRARIES}
-#   gtest_main
-# )
-
-# catkin_add_gtest(test_change_of_variables
+# add_ocs2_test(test_change_of_variables
 #   test/testChangeOfInputVariables.cpp
 # )
-# add_dependencies(test_change_of_variables
-#   ${catkin_EXPORTED_TARGETS}
-# )
-# target_link_libraries(test_change_of_variables
-#   ${PROJECT_NAME}
-#   ${catkin_LIBRARIES}
-#   gtest_main
-# )
 
-# catkin_add_gtest(test_trajectory_spreading
+# add_ocs2_test(test_trajectory_spreading
 #   test/trajectory_adjustment/TrajectorySpreadingTest.cpp
 # )
-# add_dependencies(test_trajectory_spreading
-#   ${catkin_EXPORTED_TARGETS}
-# )
-# target_link_libraries(test_trajectory_spreading
-#   ${PROJECT_NAME}
-#   ${catkin_LIBRARIES}
-#   gtest_main
-# )
 
-# catkin_add_gtest(test_ocp_to_kkt
+# add_ocs2_test(test_ocp_to_kkt
 #   test/oc_problem/testOcpToKkt.cpp
 # )
-# target_link_libraries(test_ocp_to_kkt
-#   ${PROJECT_NAME}
-#   ${catkin_LIBRARIES}
-#   gtest_main
-# )
 
-# catkin_add_gtest(test_precondition
+# add_ocs2_test(test_precondition
 #   test/precondition/testPrecondition.cpp
 # )
-# target_link_libraries(test_precondition
-#   ${PROJECT_NAME}
-#   ${catkin_LIBRARIES}
-#   gtest_main
-# )
+
+# 安装（可选，仅对外发布时使用）
+# install(TARGETS ${PROJECT_NAME} DESTINATION lib)
+# install(DIRECTORY include/ DESTINATION include)
