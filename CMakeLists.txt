@@ -10,6 +10,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # 所有模块（按依赖顺序）
 set(OCS2_MODULES
+  ocs2_comm_wrapper
   ocs2_thirdparty
   ocs2_core
   ocs2_oc

@@ -36,6 +36,7 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(pinocchio REQUIRED pinocchio)
 
+include_directories(include)
 
 ###########
 ## Build ##
@@ -44,6 +45,8 @@ pkg_check_modules(pinocchio REQUIRED pinocchio)
 ## SQP-MPC node for legged robot
 add_executable(legged_robot_sqp_mpc
   src/LeggedRobotSqpMpcNode.cpp
+  src/synchronized_module/ReferenceReceiver.cpp
+  src/gait/GaitReceiver.cpp
 )
 target_link_libraries(legged_robot_sqp_mpc
   PUBLIC ${pinocchio_LIBRARIES}
@@ -62,6 +65,7 @@ target_link_libraries(legged_robot_sqp_mpc
   PUBLIC ocs2_pinocchio_interface
   PUBLIC ocs2_centroidal_model
   PUBLIC ocs2_legged_robot
+  PUBLIC ocs2_comm_wrapper
   # dl
 )
 target_compile_options(legged_robot_sqp_mpc  PRIVATE ${OCS2_CXX_FLAGS})

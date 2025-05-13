@@ -26,9 +26,24 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
+/*
+Author: Farbod Farshidian, Yuntian Zhao
+Last Date Modified: 05/13/2025 by YZ
+
+Description:
+modify the original sqp mpc node to test the new ocs2_cmake
+*/
+
 
 #include <ocs2_legged_robot/LeggedRobotInterface.h>
+#include <ocs2_legged_robot/reference_manager/SwitchedModelReferenceManager.h>
+#include <ocs2_legged_robot/gait/GaitSchedule.h>
+#include <ocs2_legged_robot/foot_planner/SwingTrajectoryPlanner.h>
 #include <ocs2_sqp/SqpMpc.h>
+
+#include "ocs2_legged_robot_test/DummyReceiver.h"
+#include "ocs2_legged_robot_test/synchronized_module/ReferenceReceiver.h"
+#include "ocs2_legged_robot_test/gait/GaitReceiver.h"
 
 using namespace ocs2;
 using namespace legged_robot;
@@ -43,18 +58,22 @@ int main(int argc, char** argv) {
   // Robot interface
   LeggedRobotInterface interface(taskFile, urdfFile, referenceFile);
 
-  // // Gait receiver
-  // auto gaitReceiverPtr =
-  //     std::make_shared<GaitReceiver>(nodeHandle, interface.getSwitchedModelReferenceManagerPtr()->getGaitSchedule(), robotName);
+  // Gait receiver
+  auto dummyModeScheduleReceiverPtr = 
+         std::make_shared<DummyModeScheduleReceiver>();
+  auto gaitReceiverPtr =
+      std::make_shared<GaitReceiver>(dummyModeScheduleReceiverPtr, interface.getSwitchedModelReferenceManagerPtr()->getGaitSchedule(), robotName);
+  // ReferenceReceiver
+  auto dummyTargetTrajectoriesReceiverPtr = 
+         std::make_shared<DummyTargetTrajectoriesReceiver>();
 
-  // // ROS ReferenceManager
-  // auto rosReferenceManagerPtr = std::make_shared<RosReferenceManager>(robotName, interface.getReferenceManagerPtr());
-  // rosReferenceManagerPtr->subscribe(nodeHandle);
+  auto referenceReceiverPtr = std::make_shared<ReferenceReceiver>(robotName, interface.getReferenceManagerPtr(),
+         dummyTargetTrajectoriesReceiverPtr);
 
   // MPC
   SqpMpc mpc(interface.mpcSettings(), interface.sqpSettings(), interface.getOptimalControlProblem(), interface.getInitializer());
-  // mpc.getSolverPtr()->setReferenceManager(rosReferenceManagerPtr);
-  // mpc.getSolverPtr()->addSynchronizedModule(gaitReceiverPtr);
+  mpc.getSolverPtr()->setReferenceManager(referenceReceiverPtr);
+  mpc.getSolverPtr()->addSynchronizedModule(gaitReceiverPtr);
 
   std::cout << "successfully created interface and mpc(ocp)\n";
   // Successful exit
