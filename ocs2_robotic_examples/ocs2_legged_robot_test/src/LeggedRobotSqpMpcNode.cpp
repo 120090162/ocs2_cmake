@@ -40,6 +40,7 @@ modify the original sqp mpc node to test the new ocs2_cmake
 #include <ocs2_legged_robot/gait/GaitSchedule.h>
 #include <ocs2_legged_robot/foot_planner/SwingTrajectoryPlanner.h>
 #include <ocs2_sqp/SqpMpc.h>
+#include <ocs2_mpc/MPC_MRT_Interface.h>
 
 #include "ocs2_legged_robot_test/DummyReceiver.h"
 #include "ocs2_legged_robot_test/synchronized_module/ReferenceReceiver.h"
@@ -76,6 +77,24 @@ int main(int argc, char** argv) {
   mpc.getSolverPtr()->addSynchronizedModule(gaitReceiverPtr);
 
   std::cout << "successfully created interface and mpc(ocp)\n";
+
+  SystemObservation currentObservation;
+  auto stateDim = interface.getCentroidalModelInfo().stateDim;
+  auto inputDim = interface.getCentroidalModelInfo().inputDim;
+  vector_t state(stateDim), input(inputDim);
+  currentObservation.state = state;
+  currentObservation.input = input;
+
+  vector_t init_state(stateDim), target_state(stateDim);
+
+  mpc.getSolverPtr()->getReferenceManager().setTargetTrajectories(TargetTrajectories(
+       {0.0, 0.2}, {init_state, target_state}, {vector_t::Zero(inputDim), vector_t::Zero(inputDim)}
+  ));
+
+  MPC_MRT_Interface mrt(mpc);
+  mrt.initRollout(&interface.getRollout());
+  mrt.setCurrentObservation(currentObservation);
+  mrt.advanceMpc();
   // Successful exit
   return 0;
 }
