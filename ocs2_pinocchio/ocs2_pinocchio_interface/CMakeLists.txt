@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(ocs2_pinocchio_interface)
 
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+# find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 find_package(Threads REQUIRED)
 
@@ -17,8 +17,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #   ${CATKIN_PACKAGE_DEPENDENCIES}
 # )
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(pinocchio REQUIRED pinocchio)
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(pinocchio REQUIRED pinocchio)
 
 # find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
@@ -67,7 +67,8 @@ add_library(${PROJECT_NAME}
 # )
 target_link_libraries(${PROJECT_NAME}
   # ${catkin_LIBRARIES}
-  PUBLIC ${pinocchio_LIBRARIES}
+  # PUBLIC ${pinocchio_LIBRARIES}
+  PUBLIC pinocchio
   PUBLIC ocs2_robotic_tools
   PUBLIC ocs2_core
   PUBLIC ocs2_oc

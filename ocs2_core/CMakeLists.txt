@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 project(ocs2_core)
 
 # ---- 依赖包 ----
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+# find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 set(Boost_NO_BOOST_CMAKE ON)  # 强制使用旧风格 MODULE 查找
 find_package(Boost REQUIRED COMPONENTS system filesystem log_setup log)
 
@@ -20,7 +20,7 @@ message(STATUS "OCS2_CXX_FLAGS: ${OCS2_CXX_FLAGS}")
 include_directories(
   include
   test/include
-  ${EIGEN3_INCLUDE_DIRS}
+  # ${EIGEN3_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
 )
 

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 project(ocs2_oc)
 
 # 外部依赖
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+# find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 # find_package(GTest REQUIRED)
 find_package(Threads REQUIRED)
@@ -15,7 +15,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include_directories(
   include
   test/include
-  ${EIGEN3_INCLUDE_DIRS}
+  # ${EIGEN3_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
 )
 

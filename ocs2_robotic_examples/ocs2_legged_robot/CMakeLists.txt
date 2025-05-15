@@ -26,10 +26,10 @@ find_package(Boost REQUIRED COMPONENTS
   filesystem
 )
 
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+# find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(pinocchio REQUIRED pinocchio)
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(pinocchio REQUIRED pinocchio)
 
 ###################################
 ## catkin specific configuration ##
@@ -105,7 +105,7 @@ add_library(${PROJECT_NAME}
 # )
 target_link_libraries(${PROJECT_NAME}
   # ${catkin_LIBRARIES}
-  PUBLIC ${pinocchio_LIBRARIES}
+  PUBLIC pinocchio
   PUBLIC ocs2_robotic_tools
   PUBLIC ocs2_core
   PUBLIC ocs2_oc

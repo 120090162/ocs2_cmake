@@ -20,10 +20,10 @@ find_package(Boost REQUIRED COMPONENTS
   filesystem
 )
 
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+# find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(pinocchio REQUIRED pinocchio)
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(pinocchio REQUIRED pinocchio)
 
 ###################################
 ## catkin specific configuration ##
@@ -77,7 +77,7 @@ add_library(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME}
   # ${catkin_LIBRARIES}
-  PUBLIC ${pinocchio_LIBRARIES}
+  PUBLIC pinocchio
   PUBLIC ocs2_robotic_tools
   PUBLIC ocs2_core
   PUBLIC ocs2_oc
@@ -90,6 +90,10 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC Boost::system
   PUBLIC Boost::filesystem
   PUBLIC ocs2_pinocchio_interface
+  PUBLIC urdfdom_model
+  PUBLIC urdfdom_model_state
+  PUBLIC urdfdom_world
+  PUBLIC console_bridge
 )
 target_compile_options(${PROJECT_NAME} PUBLIC ${FLAGS})
 target_include_directories(${PROJECT_NAME} PUBLIC

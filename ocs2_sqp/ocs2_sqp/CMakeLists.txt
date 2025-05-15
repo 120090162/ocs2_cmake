@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 project(ocs2_sqp)
 
 # 系统依赖
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+# find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 find_package(Threads REQUIRED)
 

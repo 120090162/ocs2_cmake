@@ -3,7 +3,7 @@ project(hpipm_build)
 
 include(FetchContent)
 
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+# find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(Threads REQUIRED)
 find_package(OpenMP REQUIRED)
  

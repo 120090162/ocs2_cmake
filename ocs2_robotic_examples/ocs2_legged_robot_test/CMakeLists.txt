@@ -31,10 +31,12 @@ find_package(Boost REQUIRED COMPONENTS
   filesystem
 )
 
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(urdfdom REQUIRED)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(pinocchio REQUIRED pinocchio)
+# find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(pinocchio REQUIRED pinocchio)
 
 include_directories(include)
 
@@ -49,7 +51,7 @@ add_executable(legged_robot_sqp_mpc
   src/gait/GaitReceiver.cpp
 )
 target_link_libraries(legged_robot_sqp_mpc
-  PUBLIC ${pinocchio_LIBRARIES}
+  PUBLIC pinocchio
   PUBLIC ocs2_robotic_tools
   PUBLIC ocs2_core
   PUBLIC ocs2_oc
@@ -66,6 +68,10 @@ target_link_libraries(legged_robot_sqp_mpc
   PUBLIC ocs2_centroidal_model
   PUBLIC ocs2_legged_robot
   PUBLIC ocs2_comm_wrapper
+  PUBLIC urdfdom_model
+  PUBLIC urdfdom_model_state
+  PUBLIC urdfdom_world
+  PUBLIC console_bridge
   # dl
 )
 target_compile_options(legged_robot_sqp_mpc  PRIVATE ${OCS2_CXX_FLAGS})
