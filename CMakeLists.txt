@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 可选：导出 compile_commands.json 给 clangd 用
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # 所有模块（按依赖顺序）
 set(OCS2_MODULES
