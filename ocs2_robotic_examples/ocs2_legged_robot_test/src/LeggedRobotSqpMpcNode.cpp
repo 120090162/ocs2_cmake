@@ -46,6 +46,9 @@ modify the original sqp mpc node to test the new ocs2_cmake
 #include "ocs2_legged_robot_test/synchronized_module/ReferenceReceiver.h"
 #include "ocs2_legged_robot_test/gait/GaitReceiver.h"
 
+#include <chrono>
+#include <thread>
+
 using namespace ocs2;
 using namespace legged_robot;
 
@@ -54,6 +57,7 @@ int main(int argc, char** argv) {
 
   std::string taskFile = "/home/zyt/ocs2_cmake/ocs2_robotic_examples/ocs2_legged_robot/config/mpc/task.info";
   std::string urdfFile = "/home/zyt/ocs2_cmake/ocs2_robotic_examples/ocs2_legged_robot_test/urdf/anymal.urdf";
+  std::string gaitFile = "/home/zyt/ocs2_cmake/ocs2_robotic_examples/ocs2_legged_robot/config/command/gait.info";
   std::string referenceFile = "/home/zyt/ocs2_cmake/ocs2_robotic_examples/ocs2_legged_robot/config/command/reference.info";
 
   // Robot interface
@@ -71,10 +75,19 @@ int main(int argc, char** argv) {
   auto referenceReceiverPtr = std::make_shared<ReferenceReceiver>(robotName, interface.getReferenceManagerPtr(),
          dummyTargetTrajectoriesReceiverPtr);
 
+  const auto initModeSchedule = ocs2::legged_robot::loadModeSchedule(referenceFile, "initialModeSchedule", false);
+  auto defaultModeSequenceTemplate = ocs2::legged_robot::loadModeSequenceTemplate(gaitFile, "trot", false);
+  double phaseTransitionStanceTime = 0.2;
+  auto gaitSchedulePtr = std::make_shared<ocs2::legged_robot::GaitSchedule>(initModeSchedule, defaultModeSequenceTemplate, phaseTransitionStanceTime);
+
   // MPC
   SqpMpc mpc(interface.mpcSettings(), interface.sqpSettings(), interface.getOptimalControlProblem(), interface.getInitializer());
   mpc.getSolverPtr()->setReferenceManager(referenceReceiverPtr);
   mpc.getSolverPtr()->addSynchronizedModule(gaitReceiverPtr);
+
+  auto trotModeSchedule = gaitSchedulePtr->getModeSchedule(0, 1.5);
+  std::cout << "trotModeSchedule is " << trotModeSchedule << "\n";
+  mpc.getSolverPtr()->getReferenceManager().setModeSchedule(trotModeSchedule);
 
   std::cout << "successfully created interface and mpc(ocp)\n";
 
@@ -87,14 +100,34 @@ int main(int argc, char** argv) {
 
   vector_t init_state(stateDim), target_state(stateDim);
 
+  init_state << interface.getInitialState();
+  target_state << interface.getInitialState();
+
+  target_state(6) = 0.5;
+
   mpc.getSolverPtr()->getReferenceManager().setTargetTrajectories(TargetTrajectories(
-       {0.0, 0.2}, {init_state, target_state}, {vector_t::Zero(inputDim), vector_t::Zero(inputDim)}
+       {0.0, 1.5}, {init_state, target_state}, {vector_t::Zero(inputDim), vector_t::Zero(inputDim)}
   ));
 
   MPC_MRT_Interface mrt(mpc);
   mrt.initRollout(&interface.getRollout());
   mrt.setCurrentObservation(currentObservation);
-  mrt.advanceMpc();
-  // Successful exit
+  std::cout << "Waiting for the initial policy ...\n";
+  double frequency = interface.mpcSettings().mrtDesiredFrequency_;
+  std::chrono::duration<double> period(1.0 / frequency);
+  auto next = std::chrono::steady_clock::now() + period;
+  while (!mrt.initialPolicyReceived())
+  {
+       mrt.advanceMpc();
+       std::this_thread::sleep_until(next);
+       next += period;
+  }
+  std::cout << "Initial policy has been received.\n";
+  mrt.updatePolicy();
+  auto primarySol = mrt.getPolicy();
+  std::cout << "primarySol.stateTrajectory_ is: \n";
+  for (auto i = 0; i != primarySol.stateTrajectory_.size() - 1; ++i)
+       std::cout << primarySol.stateTrajectory_[i] << " ";
+  std::cout << "\n";
   return 0;
 }
