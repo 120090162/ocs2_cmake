@@ -23,9 +23,8 @@ public:
         // Leave blank for now
     }
 
-    TargetTrajectories* getMsg() override {
+    void getMsg(TargetTrajectories& msg) override {
         // Leave blank for now
-        return nullptr;
     }
 
     void setCallback(std::function<void(const TargetTrajectories&)> callbackFunction) override {
@@ -42,9 +41,8 @@ public:
         // Leave blank for now
     }
 
-    ModeSchedule* getMsg() override {
+    void getMsg(ModeSchedule& msg) override {
         // Leave blank for now
-        return nullptr;
     }
 
     void setCallback(std::function<void(const ModeSchedule&)> callbackFunction) override {

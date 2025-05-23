@@ -1,6 +1,6 @@
 /*
 Author: Yuntian Zhao
-Last Date Modified: 05/13/2025 by YZ
+Last Date Modified: 05/23/2025 by YZ
 
 Description:
 This is the topic receive wrapper of the internode topic interface that to be used in ocs2_cmake
@@ -30,7 +30,7 @@ public:
     virtual void init() = 0;
 
     // Polling-style access to last message
-    virtual T* getMsg() = 0;
+    virtual void getMsg(T& msg) = 0;
 
 protected:
     std::string topicName_;
