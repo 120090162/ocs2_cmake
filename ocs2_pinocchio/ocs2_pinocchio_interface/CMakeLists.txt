@@ -17,8 +17,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #   ${CATKIN_PACKAGE_DEPENDENCIES}
 # )
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(pinocchio REQUIRED pinocchio)
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(pinocchio REQUIRED pinocchio)
+
+find_package(pinocchio 3.4.0 REQUIRED)
+include_directories(${pinocchio_INCLUDE_DIRS})
 
 # find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 

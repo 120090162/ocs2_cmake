@@ -22,8 +22,11 @@ find_package(Boost REQUIRED COMPONENTS
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(pinocchio REQUIRED pinocchio)
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(pinocchio REQUIRED pinocchio)
+
+find_package(pinocchio 3.4.0 REQUIRED)
+include_directories(${pinocchio_INCLUDE_DIRS})
 
 ###################################
 ## catkin specific configuration ##
